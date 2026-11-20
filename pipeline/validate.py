@@ -7,6 +7,7 @@ from pydantic import BaseModel, field_validator, model_validator
 MIN_YEAR = -5000
 MAX_YEAR = 2026
 REJECTED_FILE = "data/rejected/rejected_artworks.json"
+REPORT_FILE = "data/quality_report.txt"
 
 
 class Artwork(BaseModel):
@@ -62,11 +63,33 @@ def clean_row(row):
             cleaned[key] = int(value)
         else:
             cleaned[key] = value
-    # artist/place None ho to default use ho
     for key in ("artist", "place_of_origin", "century"):
         if cleaned.get(key) is None:
             cleaned.pop(key, None)
     return cleaned
+
+
+def write_quality_report(df, good_df, rejected):
+    lines = []
+    lines.append("DATA QUALITY REPORT")
+    lines.append("=" * 40)
+    lines.append(f"Rows received:   {len(df)}")
+    lines.append(f"Rows passed:     {len(good_df)}")
+    lines.append(f"Rows rejected:   {len(rejected)}")
+    lines.append("")
+    lines.append("Rejection reasons:")
+    if rejected:
+        for r in rejected:
+            lines.append(f"  id {r['id']}: {r['reject_reason']}")
+    else:
+        lines.append("  none")
+    lines.append("")
+    lines.append("Missing values in received data:")
+    for col, n in df.isna().sum().items():
+        lines.append(f"  {col}: {n}")
+    with open(REPORT_FILE, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+    print("Quality report saved:", REPORT_FILE)
 
 
 def validate(df):
@@ -91,6 +114,7 @@ def validate(df):
     print("Rows in:", len(df))
     print("Good rows:", len(good_df))
     print("Rejected rows:", len(rejected))
+    write_quality_report(df, good_df, rejected)
     return good_df, rejected
 
 
