@@ -1,42 +1,40 @@
 import argparse
-import logging
+import os
 
-import pandas as pd
-
-import extract
-from transform import transform, CLEAN_FILE
+from pipeline.extract import extract
+from pipeline.transform import transform
+from pipeline.validate import validate
 
 
 def main():
     parser = argparse.ArgumentParser(description="the_provenance ETL pipeline")
-    parser.add_argument("--skip-extract", action="store_true",
-                        help="API se dobara data na layein, saved raw file use karein")
+    parser.add_argument(
+        "--skip-extract",
+        action="store_true",
+        help="API call skip karo aur purani data/raw_artworks.json use karo",
+    )
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO,
-                        format="%(asctime)s %(levelname)s: %(message)s")
+    os.makedirs("data/rejected", exist_ok=True)
 
-    # 1. Extract
-    if not args.skip_extract:
-        try:
-            extract.extract()
-        except RuntimeError as exc:
-            print("EXTRACT STOPPED:", exc)
-            return
+    # Step 1: Extract
+    if args.skip_extract:
+        print("Step 1/3: Extract skipped")
+    else:
+        print("Step 1/3: Extract")
+        extract()
 
-    records = extract.load_raw()
-    df = pd.DataFrame(records)
-    print("Raw data:", df.shape)
+    # Step 2: Transform
+    print("Step 2/3: Transform")
+    df = transform()
 
-    # 2. Transform
-    clean = transform(df)
-    clean.to_csv(CLEAN_FILE, index=False)
-    print("Clean data:", clean.shape, "->", CLEAN_FILE)
+    # Step 3: Validate
+    print("Step 3/3: Validate")
+    good_df, rejected = validate(df)
+    good_df.to_csv("data/validated_artworks.csv", index=False)
+    print("Validated data saved: data/validated_artworks.csv")
 
-    # Validate code
-
-
-    #load code
+    #load
 
 
 if __name__ == "__main__":

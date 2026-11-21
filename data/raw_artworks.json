@@ -1,6 +1,6 @@
 {
  "source": "https://api.artic.edu/api/v1/artworks",
- "fetched_at": "2026-11-20T09:38:03.317999+00:00",
+ "fetched_at": "2026-11-20T11:47:31.367714+00:00",
  "page_size": 100,
  "total_pages_in_api": 1333,
  "pages": [

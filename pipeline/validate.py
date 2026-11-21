@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Optional
 
 import pandas as pd
@@ -70,6 +71,8 @@ def clean_row(row):
 
 
 def write_quality_report(df, good_df, rejected):
+    os.makedirs(os.path.dirname(REPORT_FILE), exist_ok=True)
+
     lines = []
     lines.append("DATA QUALITY REPORT")
     lines.append("=" * 40)
@@ -93,6 +96,8 @@ def write_quality_report(df, good_df, rejected):
 
 
 def validate(df):
+    os.makedirs(os.path.dirname(REJECTED_FILE), exist_ok=True)
+
     good_rows = []
     rejected = []
 
@@ -114,14 +119,3 @@ def validate(df):
     print("Rows in:", len(df))
     print("Good rows:", len(good_df))
     print("Rejected rows:", len(rejected))
-    write_quality_report(df, good_df, rejected)
-    return good_df, rejected
-
-
-if __name__ == "__main__":
-    from pipeline.transform import transform
-
-    df = transform()
-    good_df, rejected = validate(df)
-    for r in rejected[:5]:
-        print(r["id"], "->", r["reject_reason"])
