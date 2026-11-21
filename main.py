@@ -2,11 +2,13 @@ import argparse
 import json
 import os
 
+
 import pandas as pd
 
 from pipeline.extract import extract
 from pipeline.transform import transform
 from pipeline.validate import validate
+from pipeline.load import load
 
 RAW_FILE = "data/raw_artworks.json"
 
@@ -51,6 +53,8 @@ def main():
     print("Validated data saved: data/validated_artworks.csv")
 
     # Step 4: Load 
+    print("Step 4: Load")
+    load(good_df)
 
 if __name__ == "__main__":
     main()
