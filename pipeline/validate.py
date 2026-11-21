@@ -68,6 +68,8 @@ def clean_row(row):
     for key in ("artist_title", "place_of_origin"):
         if cleaned.get(key) is None:
             cleaned.pop(key, None)
+    # has_image transform se nahi aata, is liye image_id se banate hain
+    cleaned["has_image"] = bool(cleaned.get("image_id"))
     return cleaned
 
 
