@@ -15,16 +15,16 @@ REPORT_FILE = "data/quality_report.txt"
 class Artwork(BaseModel):
     id: int
     title: str
-    artist: str = "Unknown"
+    artist_title: str = "Unknown Artist"
     date_start: Optional[int] = None
     date_end: Optional[int] = None
-    medium: Optional[str] = None
+    medium_display: Optional[str] = None
     place_of_origin: str = "Unknown"
-    department: Optional[str] = None
-    classification: Optional[str] = None
+    department_title: Optional[str] = None
+    classification_title: Optional[str] = None
     image_id: Optional[str] = None
-    century: str = "Unknown"
     has_image: bool = False
+    year_span: Optional[int] = None
 
     @field_validator("id")
     @classmethod
@@ -61,11 +61,11 @@ def clean_row(row):
     for key, value in row.items():
         if pd.isna(value):
             cleaned[key] = None
-        elif key in ("date_start", "date_end"):
+        elif key in ("date_start", "date_end", "year_span"):
             cleaned[key] = int(value)
         else:
             cleaned[key] = value
-    for key in ("artist", "place_of_origin", "century"):
+    for key in ("artist_title", "place_of_origin"):
         if cleaned.get(key) is None:
             cleaned.pop(key, None)
     return cleaned
