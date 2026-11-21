@@ -7,6 +7,7 @@ from pydantic import BaseModel, field_validator, model_validator
 
 MIN_YEAR = -5000
 MAX_YEAR = 2026
+RAW_FILE = "data/raw_artworks.json"
 REJECTED_FILE = "data/rejected/rejected_artworks.json"
 REPORT_FILE = "data/quality_report.txt"
 
@@ -119,3 +120,17 @@ def validate(df):
     print("Rows in:", len(df))
     print("Good rows:", len(good_df))
     print("Rejected rows:", len(rejected))
+    write_quality_report(df, good_df, rejected)
+    return good_df, rejected
+
+
+if __name__ == "__main__":
+    from pipeline.transform import transform
+
+    with open(RAW_FILE, encoding="utf-8") as f:
+        raw_df = pd.DataFrame(json.load(f)["data"])
+
+    df = transform(raw_df)
+    good_df, rejected = validate(df)
+    for r in rejected[:5]:
+        print(r["id"], "->", r["reject_reason"])
