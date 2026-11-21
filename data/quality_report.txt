@@ -1,0 +1,21 @@
+DATA QUALITY REPORT
+========================================
+Rows received:   3075
+Rows passed:     3075
+Rows rejected:   0
+
+Rejection reasons:
+  none
+
+Missing values in received data:
+  id: 0
+  title: 0
+  date_start: 188
+  date_end: 188
+  place_of_origin: 0
+  medium_display: 0
+  department_title: 0
+  artist_title: 0
+  classification_title: 0
+  image_id: 233
+  year_span: 188
