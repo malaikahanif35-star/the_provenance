@@ -9,6 +9,7 @@ from pipeline.extract import extract
 from pipeline.transform import transform
 from pipeline.validate import validate
 from pipeline.load import load
+from pipeline.eda import run_eda
 
 RAW_FILE = "data/raw_artworks.json"
 
@@ -35,26 +36,31 @@ def main():
 
     # Step 1: Extract
     if args.skip_extract:
-        print("Step 1/3: Extract skipped (using saved raw file)")
+        print("Step 1/5: Extract skipped (using saved raw file)")
         raw_df = load_raw()
     else:
-        print("Step 1/3: Extract")
+        print("Step 1/5: Extract")
         extract()
         raw_df = load_raw()
 
     # Step 2: Transform
-    print("Step 2/3: Transform")
+    print("Step 2/5: Transform")
     df = transform(raw_df)
 
     # Step 3: Validate
-    print("Step 3/3: Validate")
+    print("Step 3/5: Validate")
     good_df, rejected = validate(df)
     good_df.to_csv("data/validated_artworks.csv", index=False)
     print("Validated data saved: data/validated_artworks.csv")
 
-    # Step 4: Load 
-    print("Step 4: Load")
+    # Step 4: Load
+    print("Step 4/5: Load")
     load(good_df)
+
+    # Step 5: EDA
+    print("Step 5/5: EDA")
+    run_eda()
+
 
 if __name__ == "__main__":
     main()
