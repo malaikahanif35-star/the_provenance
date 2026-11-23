@@ -1,49 +1,97 @@
-import os
-import re
-import html
-import requests
-import pandas as pd
-from flask import Flask, Response, send_from_directory
-
-app = Flask(__name__)
+    type: 'bar',
+    data: { labels: d.labels, datasets: [{ data: d.values, backgroundColor: palette, borderRadius: 2, maxBarThickness: 25 }] },
+    options: {
+      responsive: true,
+      indexAxis: horizontal ? 'y' : 'x',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: horizontal ? grid : { display: false }, ticks: { color: '#82796b' } },
+        y: { grid: horizontal ? { display: false } : grid, ticks: { color: '#82796b' } }
+      }
+    }
+  });
+}
+bar('c1', D.countries, false);
+new Chart(document.getElementById('c2'), {
+  type: 'line',
+  data: { labels: D.centuries.labels, datasets: [{
+    data: D.centuries.values, borderColor: '#566653',
+    backgroundColor: 'rgba(179,154,105,.22)', fill: true, tension: .35,
+    pointBackgroundColor: '#b39a69', pointBorderColor: '#fbf8f0', pointBorderWidth: 2, pointRadius: 4
+  }] },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { x: { grid: { display: false } }, y: { grid } }
+  }
+});
+bar('c3', D.departments, true);
+bar('c4', D.artists, true);
+</script>
+</body>
+</html>
+"""
 
 
 @app.route("/")
 def home():
-    df = pd.read_csv("data/clean_artworks.csv")
-    report = open("data/eda_report.txt", encoding="utf-8").read()
+    q = request.args.get("q", "").strip()
+    country = request.args.get("country", "").strip()
+    try:
+        page = max(1, int(request.args.get("page", 1)))
+    except ValueError:
+        page = 1
 
-    chart_files = sorted(f for f in os.listdir("data/charts") if f.endswith(".png"))
-    charts_html = "".join(
-        f'<img src="/charts/{n}" style="max-width:100%; margin:10px 0;"><br>'
-        for n in chart_files
-    )
-
-    # sirf woh artworks jin ki image_id maujood hai
     with_img = df[df["image_id"].notna()]
-    sample = with_img.sample(min(24, len(with_img)))
-    gallery_html = "".join(
-        f'''<div style="width:220px; margin:10px;">
-              <div style="height:220px; background:#eee; border-radius:8px; display:flex;
-                          align-items:center; justify-content:center; color:#888; font-size:13px;
-                          position:relative; overflow:hidden;">
-                Image unavailable
-                <img src="/img/{row["image_id"]}" loading="lazy" onerror="this.remove()"
-                     style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;">
-              </div>
-              <p style="font-size:14px;">{html.escape(str(row.get("title", "")))}</p>
-            </div>'''
-        for _, row in sample.iterrows()
-    )
+    view = with_img
+    if q:
+        mask = (
+            view["title"].str.contains(q, case=False, na=False, regex=False)
+            | view["artist_title"].str.contains(q, case=False, na=False, regex=False)
+        )
+        view = view[mask]
+    if country:
+        view = view[view["place_of_origin"] == country]
 
-    return f"""
-    <h1>The Provenance</h1>
-    <p>Total artworks: {len(df)}</p>
-    <h2>Gallery</h2>
-    <div style="display:flex; flex-wrap:wrap;">{gallery_html}</div>
-    <h2>Charts</h2>{charts_html}
-    <h2>EDA Report</h2><pre>{html.escape(report)}</pre>
-    """
+    total = len(view)
+    pages = max(1, math.ceil(total / PER_PAGE))
+    page = min(page, pages)
+    items = view.iloc[(page - 1) * PER_PAGE: page * PER_PAGE].to_dict("records")
+
+    featured = with_img.sample(1).iloc[0].to_dict()
+
+    known_countries = df["place_of_origin"][df["place_of_origin"] != "Unknown"]
+    countries = list(known_countries.value_counts().head(40).index)
+
+    years = df["date_start"].dropna()
+    stats = {
+        "total": len(df),
+        "countries": int(known_countries.nunique()),
+        "artists": int(df["artist_title"][df["artist_title"] != "Unknown"].nunique()),
+        "span": f"{int(years.min())}-{int(years.max())}" if len(years) else "N/A",
+    }
+
+    charts = {
+        "countries": top(df["place_of_origin"]),
+        "centuries": century_counts(),
+        "departments": top(df["department_title"]),
+        "artists": top(df["artist_title"]),
+    }
+
+    try:
+        report = open("data/eda_report.txt", encoding="utf-8").read()
+    except FileNotFoundError:
+        report = "EDA report not found."
+    try:
+        chart_files = sorted(f for f in os.listdir("data/charts") if f.endswith(".png"))
+    except FileNotFoundError:
+        chart_files = []
+
+    return render_template_string(
+        TEMPLATE, stats=stats, charts=charts, items=items, total=total,
+        page=page, pages=pages, q=q, country=country, countries=countries,
+        report=report, chart_files=chart_files, featured=featured,
+    )
 
 
 @app.route("/charts/<name>")
@@ -73,3 +121,7 @@ def img(image_id):
         pass
 
     return Response(status=404)
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
