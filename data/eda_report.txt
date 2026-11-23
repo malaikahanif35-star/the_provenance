@@ -1,0 +1,44 @@
+EDA REPORT
+========================================
+
+PIPELINE STATS
+Rows extracted: 3075
+Rows rejected:  0
+Rows loaded:    3028
+Removed in transform (duplicates / invalid): 47
+
+SUMMARY STATISTICS
+       date_start  date_end  year_span
+count      2851.0    2851.0     2851.0
+mean       1824.5    1841.2       16.6
+std         258.9     239.7       46.6
+min       -1000.0    -859.0        0.0
+25%        1789.0    1810.0        0.0
+50%        1916.0    1926.0        0.0
+75%        1965.0    1968.0       10.0
+max        2023.0    2023.0     1269.0
+
+MISSING / UNKNOWN VALUES
+              column  missing  percent
+        artist_title      459     15.2
+            image_id      231      7.6
+          date_start      177      5.8
+            date_end      177      5.8
+           year_span      177      5.8
+     place_of_origin      144      4.8
+classification_title       86      2.8
+      medium_display       10      0.3
+    department_title        9      0.3
+                  id        0      0.0
+               title        0      0.0
+           has_image        0      0.0
+
+Artworks before year 1 (not in the century chart): 8
+
+INSIGHTS
+1. Century 20 (years 1901 to 2000) has the most artworks: 1457.
+2. The largest department is Prints and Drawings with 1419 artworks (46.9% of the data).
+3. The most used medium is 'Gelatin silver print' (328 artworks).
+4. The most common place of origin is United States (1156 artworks).
+5. 15.2% of the artworks have an unknown artist.
+6. 5.8% of the artworks have no year, so they are left out of the year and century charts.
